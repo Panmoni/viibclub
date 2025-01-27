@@ -1,4 +1,5 @@
-import { ConnectButton } from "@/components/ConnectButton";
+// import { ConnectButton } from "@/components/ConnectButton";
+import ConnectButton from "@/components/CustomConnectButton";
 import { InfoList } from "@/components/InfoList";
 import { ActionButtonList } from "@/components/ActionButtonList";
 import { UsernameFormWrapper } from "@/components/OnboardingFormWrapper";
@@ -22,13 +23,12 @@ export default function Home() {
             Viib.club
           </h1>
           <p className="text-gray-400 text-lg font-mono">
-            An On-Chain Social Network for Product Development
+            An On-Chain Social Network for Web3 Product Development
           </p>
         </div>
 
         <div className="space-y-6">
           <ConnectButton />
-          <ActionButtonList />
           <UsernameFormWrapper />
         </div>
       </div>
