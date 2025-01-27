@@ -7,6 +7,9 @@ import { GeistMono } from 'geist/font/mono';
 export const metadata: Metadata = {
   title: "Viib.club",
   description: "An On-Chain Social Network for Product Development",
+  icons: {
+    icon: '/viibclub-logo-v3.svg'
+  }
 };
 
 export default async function RootLayout({
