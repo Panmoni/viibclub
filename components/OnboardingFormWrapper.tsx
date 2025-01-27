@@ -19,9 +19,19 @@ export function UsernameFormWrapper() {
     country_code: null
   })
   const [loading, setLoading] = useState(true)
+  const [fetchCompleted, setFetchCompleted] = useState(false)
 
   useEffect(() => {
-    if (!walletAddress) return
+    if (!walletAddress) {
+      setUserData({
+        username: null,
+        emojis: [],
+        country_code: null
+      })
+      setLoading(false)
+      setFetchCompleted(false)
+      return
+    }
 
     const fetchUserData = async () => {
       try {
@@ -34,24 +44,22 @@ export function UsernameFormWrapper() {
             emojis: [],
             country_code: null
           })
-          return
-        }
-        
-        if (!response.ok) {
+        } else if (!response.ok) {
           throw new Error('Failed to fetch user data')
+        } else {
+          const data = await response.json()
+          setUserData({
+            username: data.username,
+            emojis: data.emojis || [],
+            country_code: data.country_code || null
+          })
         }
-        
-        const data = await response.json()
-        setUserData({
-          username: data.username,
-          emojis: data.emojis || [],
-          country_code: data.country_code || null
-        })
       } catch (error) {
         console.error('Error fetching user data:', error)
-      } finally {
-        setLoading(false)
       }
+      
+      setLoading(false)
+      setFetchCompleted(true)
     }
 
     fetchUserData()
@@ -94,7 +102,13 @@ export function UsernameFormWrapper() {
     }
   }
 
-  if (loading) return null
+  // Don't show anything if wallet is not connected
+  if (!walletAddress) return null
+
+  // Show loading state or if fetch hasn't completed
+  if (loading || !fetchCompleted) return null
+
+  // Show welcome message if user exists
   if (userData.username) return (
     <div className="text-center mt-8">
       <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent animate-gradient">
@@ -108,5 +122,6 @@ export function UsernameFormWrapper() {
     </div>
   )
 
+  // Show onboarding form only if wallet is connected and no user record exists
   return <OnboardingForm onSubmit={handleOnboardingSubmit} walletAddress={walletAddress} />
 }
