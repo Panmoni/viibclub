@@ -3,19 +3,68 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #09090b;
+  --foreground: #fafafa;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Form styles */
+input, textarea {
+  @apply w-full p-3 rounded-lg border border-gray-700 bg-gray-900 text-gray-100;
+  @apply focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent;
+}
+
+input::placeholder, textarea::placeholder {
+  @apply text-gray-500;
+}
+
+button, appkit-button {
+  @apply px-6 py-3 rounded-lg font-medium transition-colors;
+  @apply bg-gradient-to-r from-purple-600 to-pink-600 text-white;
+  @apply hover:from-purple-700 hover:to-pink-700;
+  @apply active:scale-95 transform transition-transform;
+}
+
+appkit-button {
+  @apply text-gray-100;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-700 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-600;
 }
