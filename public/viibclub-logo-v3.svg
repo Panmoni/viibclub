@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <path d="M20 40 L180 40 L180 160 L100 200 L20 160 L20 40 Z" 
+        fill="#7B2CBF" 
+        stroke="#ffffff" 
+        stroke-width="2"/>
+  
+  <path d="M70 100 L100 140 L130 100" 
+        stroke="#ffffff" 
+        stroke-width="3"
+        fill="none"/>
+</svg>
