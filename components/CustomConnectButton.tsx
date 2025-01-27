@@ -6,8 +6,9 @@ import { useEffect, useState } from 'react'
 import { Connection, PublicKey } from '@solana/web3.js'
 
 export default function ConnectButton() {
-  const { address, isConnected } = useAppKitAccount()
+  const { address, isConnected, status } = useAppKitAccount()
   const [balance, setBalance] = useState<number | null>(null)
+  const [balanceError, setBalanceError] = useState<string | null>(null)
 
   useEffect(() => {
     async function getBalance() {
@@ -31,49 +32,91 @@ export default function ConnectButton() {
             })
           }
           setBalance(null)
+          setBalanceError('Error loading balance')
         }
       }
     }
 
     if (isConnected && address) {
+      setBalanceError(null)
       getBalance()
     } else {
       setBalance(null)
+      setBalanceError(null)
     }
   }, [address, isConnected])
 
-  if (isConnected && address) {
+  // Show connecting state
+  if (status === 'connecting') {
+    return (
+      <div className="flex justify-center">
+        <button 
+          className="rounded-lg bg-yellow-500 px-4 py-2 text-white transition-colors"
+          disabled
+          aria-label="Connecting wallet"
+        >
+          <span className="animate-pulse">Connecting Wallet...</span>
+        </button>
+      </div>
+    )
+  }
+
+  // Show reconnecting state
+  if (status === 'reconnecting') {
+    return (
+      <div className="flex justify-center">
+        <button 
+          className="rounded-lg bg-orange-500 px-4 py-2 text-white transition-colors"
+          disabled
+          aria-label="Reconnecting wallet"
+        >
+          <span className="animate-pulse">Reconnecting...</span>
+        </button>
+      </div>
+    )
+  }
+
+  // Show connected state with enhanced UI
+  if (status === 'connected' && address) {
     return (
       <div className="flex justify-center">
         <div className="flex items-center gap-4">
-        <div className="text-sm">
-          <div className="text-gray-400">
-            {address.slice(0, 4)}...{address.slice(-4)}
-          </div>
-          {balance !== null && (
-            <div className="text-gray-500">
-              {balance.toFixed(2)} SOL
+          <div className="text-sm">
+            <div className="text-gray-400 flex items-center">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2" aria-hidden="true" /> {/* Status indicator */}
+              {address.slice(0, 4)}...{address.slice(-4)}
             </div>
-          )}
-        </div>
-        <button 
-          className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition-colors"
-          onClick={() => modal.open()}
-        >
-          Disconnect
-        </button>
+            {balanceError ? (
+              <div className="text-red-400 text-xs">
+                {balanceError}
+              </div>
+            ) : balance !== null && (
+              <div className="text-gray-500">
+                {balance.toFixed(2)} SOL
+              </div>
+            )}
+          </div>
+          <button 
+            className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition-colors"
+            onClick={() => modal.open()}
+            aria-label="Disconnect wallet"
+          >
+            Disconnect
+          </button>
         </div>
       </div>
     )
   }
 
+  // Show disconnected state (default)
   return (
     <div className="flex justify-center">
       <button 
-      className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition-colors"
-      onClick={() => modal.open()}
-    >
-      Connect
+        className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition-colors"
+        onClick={() => modal.open()}
+        aria-label="Connect wallet"
+      >
+        Connect Wallet
       </button>
     </div>
   )
