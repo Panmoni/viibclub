@@ -5,7 +5,7 @@ import { useAppKitAccount } from '@reown/appkit/react'
 import { useEffect, useState } from 'react'
 import { Connection, PublicKey } from '@solana/web3.js'
 
-export default function ConnectButton() {
+function ConnectButtonContent() {
   const { address, isConnected, status } = useAppKitAccount()
   const [balance, setBalance] = useState<number | null>(null)
   const [balanceError, setBalanceError] = useState<string | null>(null)
@@ -120,4 +120,29 @@ export default function ConnectButton() {
       </button>
     </div>
   )
+}
+
+export default function ConnectButton() {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Don't render anything on the server
+  if (!mounted) {
+    return (
+      <div className="flex justify-center">
+        <button 
+          className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition-colors"
+          disabled
+          aria-label="Loading wallet"
+        >
+          Loading...
+        </button>
+      </div>
+    )
+  }
+
+  return <ConnectButtonContent />
 }

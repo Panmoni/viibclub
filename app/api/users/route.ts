@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 
   const { data: user, error } = await supabase
     .from('users')
-    .select('username, emojis, country_code')
+    .select('username, emojis, country_code, nft_address')
     .eq('wallet_address', wallet_address)
     .single()
 
@@ -64,8 +64,8 @@ export async function POST(request: Request) {
   console.log('Received request to set username');
   
   // Use the imported supabase client directly
-  const { wallet_address, username, emojis, country_code } = await request.json()
-  console.log('Request data:', { wallet_address, username, emojis, country_code });
+  const { wallet_address, username, emojis, country_code, nft_address } = await request.json()
+  console.log('Request data:', { wallet_address, username, emojis, country_code, nft_address });
 
   // Validate required fields
   if (!wallet_address || !username) {
@@ -134,9 +134,10 @@ export async function POST(request: Request) {
     .from('users')
     .upsert({
       wallet_address,
-      username,
-      emojis,
-      country_code,
+      ...(username && { username }),
+      ...(emojis && { emojis }),
+      ...(country_code && { country_code }),
+      ...(nft_address && { nft_address }),
       updated_at: new Date().toISOString(),
       ...(!user && { created_at: new Date().toISOString() })
     })

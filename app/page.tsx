@@ -3,6 +3,7 @@ import ConnectButton from "@/components/CustomConnectButton";
 import { InfoList } from "@/components/InfoList";
 import { ActionButtonList } from "@/components/ActionButtonList";
 import { UsernameFormWrapper } from "@/components/OnboardingFormWrapper";
+import MintButton from "@/components/MintButton";
 import Image from 'next/image';
 
 export default function Home() {
@@ -30,6 +31,7 @@ export default function Home() {
         <div className="space-y-6">
           <ConnectButton />
           <UsernameFormWrapper />
+          <MintButton />
         </div>
       </div>
     </div>

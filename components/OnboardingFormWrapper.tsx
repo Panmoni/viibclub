@@ -4,15 +4,22 @@ import { useEffect, useState } from 'react'
 import OnboardingForm from './OnboardingForm'
 import { useWallet } from '@/context'
 import { getCountryName } from '@/lib/countries'
+import { createSoulboundNFT } from '@/lib/nftMint'
+import { useAppKitConnection } from '@reown/appkit-adapter-solana/react'
+import { useAppKitProvider } from '@reown/appkit/react'
+import type { Provider } from '@reown/appkit-adapter-solana'
 
 interface UserData {
   username: string | null
   emojis: string[]
   country_code: string | null
+  nft_address?: string | null
 }
 
 export function UsernameFormWrapper() {
   const walletAddress = useWallet()
+  const { connection } = useAppKitConnection()
+  const { walletProvider } = useAppKitProvider<Provider>('solana')
   const [userData, setUserData] = useState<UserData>({
     username: null,
     emojis: [],
@@ -20,6 +27,7 @@ export function UsernameFormWrapper() {
   })
   const [loading, setLoading] = useState(true)
   const [fetchCompleted, setFetchCompleted] = useState(false)
+  const [nftMinting, setNftMinting] = useState(false)
 
   useEffect(() => {
     if (!walletAddress) {
@@ -51,7 +59,8 @@ export function UsernameFormWrapper() {
           setUserData({
             username: data.username,
             emojis: data.emojis || [],
-            country_code: data.country_code || null
+            country_code: data.country_code || null,
+            nft_address: data.nft_address || null
           })
         }
       } catch (error) {
@@ -71,6 +80,7 @@ export function UsernameFormWrapper() {
     }
 
     try {
+      // 1. Save user data to database
       const response = await fetch('/api/users', {
         method: 'POST',
         headers: {
@@ -89,15 +99,55 @@ export function UsernameFormWrapper() {
         throw new Error(errorData.error || 'Failed to save onboarding data')
       }
 
-      const data = await response.json()
-      setUserData({
-        username: formData.username,
-        country_code: formData.country,
-        emojis: formData.emojis
-      })
-      return data
+      const userData = await response.json()
+
+      // 2. Mint soul bound NFT
+      setNftMinting(true)
+      try {
+        if (!connection || !walletProvider) {
+          throw new Error('Connection or wallet provider not available');
+        }
+
+        const nftAddress = await createSoulboundNFT({
+          connection,
+          walletProvider,
+          username: formData.username,
+          country: formData.country,
+          emojis: formData.emojis
+        })
+
+        // 3. Update user record with NFT address
+        const updateResponse = await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            wallet_address: walletAddress,
+            nft_address: nftAddress
+          }),
+        })
+
+        if (!updateResponse.ok) {
+          throw new Error('Failed to update user with NFT address')
+        }
+
+        setUserData({
+          username: formData.username,
+          country_code: formData.country,
+          emojis: formData.emojis,
+          nft_address: nftAddress
+        })
+      } catch (error) {
+        console.error('Error minting NFT:', error)
+        throw error
+      } finally {
+        setNftMinting(false)
+      }
+
+      return userData
     } catch (error) {
-      console.error('Error saving onboarding data:', error)
+      console.error('Error in onboarding process:', error)
       throw error
     }
   }
@@ -105,8 +155,20 @@ export function UsernameFormWrapper() {
   // Don't show anything if wallet is not connected
   if (!walletAddress) return null
 
-  // Show loading state or if fetch hasn't completed
+  // Show loading states
   if (loading || !fetchCompleted) return null
+  
+  // Show minting state
+  if (nftMinting) return (
+    <div className="text-center mt-8">
+      <h2 className="text-2xl font-bold text-gray-400 animate-pulse">
+        Minting your profile NFT...
+      </h2>
+      <p className="text-gray-500 mt-2">
+        Please approve the transaction in your wallet
+      </p>
+    </div>
+  )
 
   // Show welcome message if user exists
   if (userData.username) return (
@@ -117,6 +179,21 @@ export function UsernameFormWrapper() {
       {userData.emojis.length > 0 && (
         <div className="mt-4 text-2xl">
           <span className="text-gray-400 text-lg font-mono">Your Current Viib: </span>{userData.emojis.join(' ')}
+        </div>
+      )}
+      {userData.nft_address && (
+        <div className="mt-4">
+          <p className="text-gray-400 text-sm font-mono">
+            Profile NFT: {userData.nft_address.slice(0, 4)}...{userData.nft_address.slice(-4)}
+          </p>
+          <a 
+            href={`https://explorer.solana.com/address/${userData.nft_address}?cluster=devnet`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:text-blue-600 text-xs font-mono mt-1 inline-block"
+          >
+            View on Solana Explorer
+          </a>
         </div>
       )}
     </div>
